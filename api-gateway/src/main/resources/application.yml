@@ -1,0 +1,102 @@
+server:
+  port: 8085
+
+spring:
+  cloud:
+    gateway:
+      routes:
+
+        # -------- USER SERVICE --------
+        - id: user-service
+          uri: http://user-service:8080
+          predicates:
+            - Path=/users/**
+          filters:
+            - RewritePath=/users/(?<segment>.*), /api/users/${segment}
+
+        - id: user-service-docs
+          uri: http://user-service:8080
+          predicates:
+            - Path=/v3/api-docs/user
+          filters:
+            - SetPath=/v3/api-docs
+
+        # -------- CART SERVICE --------
+        - id: cart-service
+          uri: http://cart-service:8081
+          predicates:
+            - Path=/cart/**
+          filters:
+            - RewritePath=/cart/(?<segment>.*), /api/cart/${segment}
+
+        - id: cart-service-docs
+          uri: http://cart-service:8081
+          predicates:
+            - Path=/v3/api-docs/cart
+          filters:
+            - SetPath=/v3/api-docs
+
+        # -------- ORDER SERVICE --------
+        - id: order-service
+          uri: http://order-service:8082
+          predicates:
+            - Path=/orders/**
+          filters:
+            - RewritePath=/orders/(?<segment>.*), /api/orders/${segment}
+
+        - id: order-service-docs
+          uri: http://order-service:8082
+          predicates:
+            - Path=/v3/api-docs/order
+          filters:
+            - SetPath=/v3/api-docs
+
+        # -------- PAYMENT SERVICE --------
+        - id: payment-service
+          uri: http://payment-service:8083
+          predicates:
+            - Path=/payments/**
+          filters:
+            - RewritePath=/payments/(?<segment>.*), /api/payments/${segment}
+
+        - id: payment-service-docs
+          uri: http://payment-service:8083
+          predicates:
+            - Path=/v3/api-docs/payment
+          filters:
+            - SetPath=/v3/api-docs
+
+        # -------- NOTIFICATION SERVICE --------
+        - id: notification-service
+          uri: http://notification-service:8084
+          predicates:
+            - Path=/notifications/**
+          filters:
+            - RewritePath=/notifications/(?<segment>.*), /api/notifications/${segment}
+
+        - id: notification-service-docs
+          uri: http://notification-service:8084
+          predicates:
+            - Path=/v3/api-docs/notification
+          filters:
+            - SetPath=/v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: user-service
+        url: /v3/api-docs/user
+      - name: cart-service
+        url: /v3/api-docs/cart
+      - name: order-service
+        url: /v3/api-docs/order
+      - name: payment-service
+        url: /v3/api-docs/payment
+      - name: notification-service
+        url: /v3/api-docs/notification
