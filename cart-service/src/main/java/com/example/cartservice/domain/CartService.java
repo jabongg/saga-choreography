@@ -4,6 +4,7 @@ import com.example.contracts.CartCheckedOutEvent;
 import com.example.contracts.CartItem;
 import com.example.contracts.OrderCancelledEvent;
 import com.example.contracts.TopicNames;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 public class CartService {
 
@@ -208,6 +210,7 @@ public class CartService {
 
     private void sendCheckedOutEvent(String topic, String key, CartCheckedOutEvent event) {
         try {
+            log.info("Publishing cart checkout event: {}", event);
             kafkaTemplate.send(topic, key, event).get(10, TimeUnit.SECONDS);
         } catch (Exception exception) {
             throw new IllegalStateException("Failed to publish cart checkout event", exception);

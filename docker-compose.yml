@@ -38,6 +38,18 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
+  # ---------------- KAFKA UI ---------------- #
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: ecommerce-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8089:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+
   # ---------------- user-service ---------------- #
   user-service:
     build:
@@ -45,6 +57,7 @@ services:
       dockerfile: user-service/Dockerfile
     ports:
       - "8080:8080"
+      - "5005:5005"
     depends_on:
       - postgres
       - kafka
@@ -53,6 +66,8 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   # ---------------- cart-service ---------------- #
   cart-service:
@@ -61,6 +76,7 @@ services:
       dockerfile: cart-service/Dockerfile
     ports:
       - "8081:8081"
+      - "5006:5005"
     depends_on:
       - postgres
       - kafka
@@ -69,6 +85,8 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   # ---------------- order-service ---------------- #
   order-service:
@@ -77,6 +95,7 @@ services:
       dockerfile: order-service/Dockerfile
     ports:
       - "8082:8082"
+      - "5007:5005"
     depends_on:
       - postgres
       - kafka
@@ -85,14 +104,17 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
-  # ---------------- payment-service ---------------- #
+  # ---------------- inventory-service ---------------- #
   inventory-service:
     build:
       context: .
       dockerfile: inventory-service/Dockerfile
     ports:
       - "8086:8086"
+      - "5008:5005"
     depends_on:
       - postgres
       - kafka
@@ -101,6 +123,8 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   # ---------------- payment-service ---------------- #
   payment-service:
@@ -109,6 +133,7 @@ services:
       dockerfile: payment-service/Dockerfile
     ports:
       - "8083:8083"
+      - "5009:5005"
     depends_on:
       - postgres
       - kafka
@@ -117,6 +142,8 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   # ---------------- notification-service ---------------- #
   notification-service:
@@ -125,6 +152,7 @@ services:
       dockerfile: notification-service/Dockerfile
     ports:
       - "8084:8084"
+      - "5010:5005"
     depends_on:
       - postgres
       - kafka
@@ -136,6 +164,8 @@ services:
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
       APP_MAIL_FROM: ${APP_MAIL_FROM:-}
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   # ---------------- API GATEWAY ---------------- #
   api-gateway:
@@ -144,6 +174,7 @@ services:
       dockerfile: api-gateway/Dockerfile
     ports:
       - "8085:8085"
+      - "5011:5005"
     depends_on:
       - user-service
       - cart-service
@@ -151,10 +182,10 @@ services:
       - inventory-service
       - payment-service
       - notification-service
-
-    # Optional but recommended
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      JAVA_TOOL_OPTIONS: >
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8085/actuator/health"]
